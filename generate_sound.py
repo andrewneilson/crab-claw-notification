@@ -39,6 +39,16 @@ def make_single_snap(num_samples, offset_samples=0, seed=42):
     body = lfilter(b_body, a_body, body)
     body *= np.exp(-t_snap * 90)  # Moderate decay
 
+    # Hollow resonance - tuned sine with quick ring-out (like tapping a hollow bone)
+    hollow_len = int(SAMPLE_RATE * 0.025)  # 25ms ring
+    hollow = np.zeros(snap_duration)
+    t_hollow = np.linspace(0, 0.025, hollow_len)
+    # Primary hollow tone with slight detuned overtone for organic quality
+    hollow_wave = np.sin(2 * np.pi * 1200 * t_hollow) * 0.7
+    hollow_wave += np.sin(2 * np.pi * 1850 * t_hollow) * 0.3  # slight overtone
+    hollow_wave *= np.exp(-t_hollow * 180)  # quick decay but with ring
+    hollow[click2_start:click2_start + hollow_len] = hollow_wave[:hollow_len]
+
     # Very subtle low-end warmth - much quieter
     thump_len = click2_len
     thump = np.zeros(snap_duration)
@@ -46,8 +56,8 @@ def make_single_snap(num_samples, offset_samples=0, seed=42):
     thump_wave *= np.exp(-np.linspace(0, 1, thump_len) * 6)
     thump[click2_start:click2_start + thump_len] = thump_wave
 
-    # Mix - very subtle thump (1.5%)
-    snap = 0.46 * click1 + 0.46 * click2 + 0.065 * body + 0.015 * thump
+    # Mix - added hollow resonance
+    snap = 0.42 * click1 + 0.42 * click2 + 0.06 * body + 0.08 * hollow + 0.02 * thump
 
     # Place in full array at offset
     result = np.zeros(num_samples)
@@ -64,8 +74,8 @@ def generate_crab_snap():
     # First snap at the start
     snap1 = make_single_snap(num_samples, offset_samples=0, seed=42)
 
-    # Second snap ~200ms later
-    gap_ms = 200
+    # Second snap ~220ms later
+    gap_ms = 220
     snap2_offset = int(SAMPLE_RATE * gap_ms / 1000)
     snap2 = make_single_snap(num_samples, offset_samples=snap2_offset, seed=99)
 
