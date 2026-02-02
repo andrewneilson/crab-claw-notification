@@ -17,4 +17,4 @@ python generate_sound.py
 ## More info
 
 * I'm currently using this with Ghostty on MacOS 15.6.1
-* Also see [`CLAUDE.md`]
+* Also see [`CLAUDE.md`](CLAUDE.md)
